@@ -1,0 +1,12 @@
+<document>
+    <menuBarTemplate>
+        <menuBar>
+            <menuItem selectTargetURL="page1.xml">
+                <title>page1</title>
+            </menuItem>
+            <menuItem selectTargetURL="page2.xml">
+                <title>page2</title>
+            </menuItem>
+        </menuBar>
+    </menuBarTemplate>
+</document>

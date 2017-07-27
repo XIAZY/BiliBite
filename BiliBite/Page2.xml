@@ -1,0 +1,6 @@
+<document>
+    <alertTemplate>
+        <title> Page 2</title>
+        <description>This page is associated with the second tab</description>
+    </alertTemplate>
+</document>

@@ -1,0 +1,33 @@
+<document>
+    <compilationTemplate>
+        <list>
+            <header>
+                <title>This is the title of this compilation</title>
+                <subtitle>author</subtitle>
+            </header>
+            <section>
+                <description>Description</description>
+            </section>
+            <section>
+                <listItemLockup av="761947">
+                    <title>第一集</title>
+                    <relatedContent>
+                        <lockup>
+                            <img src="http://i2.hdslb.com/bfs/archive/edf36e68a81f84da76aa649f5f338ba55478f83d.jpg" width="558" height="349" />
+                            <title>不见不闻</title>
+                        </lockup>
+                    </relatedContent>
+                </listItemLockup>
+                <listItemLockup>
+                    <title>第二集</title>
+                    <relatedContent>
+                        <lockup>
+                            <img src="http://i2.hdslb.com/bfs/archive/09dd4a8a6aefd8ccc505fb20311451c2d9b48481.jpg" width="558" height="349" />
+                            <title>只有你一个</title>
+                        </lockup>
+                    </relatedContent>
+                </listItemLockup>
+            </section>
+        </list>
+    </compilationTemplate>
+</document>

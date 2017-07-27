@@ -116,5 +116,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, TVApplicationControllerDe
     func appController(_ appController: TVApplicationController, didStop options: [String: Any]?) {
         print("\(#function) invoked with options: \(options ?? [:])")
     }
+    
+    //call this method once after setting up your appController.
+    func appController(_ appController: TVApplicationController, evaluateAppJavaScriptIn jsContext: JSContext){
+        let debug : @convention(block) (NSString!) -> Void = {
+            (string : NSString!) -> Void in
+            #if DEBUG
+                print("[log]: \(string)\n")
+            #endif
+        }
+        jsContext.setObject(unsafeBitCast(debug, to: AnyObject.self), forKeyedSubscript: "debug" as (NSCopying & NSObjectProtocol))
+    }
 }
 
