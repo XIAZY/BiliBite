@@ -7,10 +7,12 @@
 //
 
 import UIKit
+import AVKit
 import TVMLKit
+import AVFoundation
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate, TVApplicationControllerDelegate {
+class AppDelegate: UIViewController, UIApplicationDelegate, TVApplicationControllerDelegate {
     
     var window: UIWindow?
     var appController: TVApplicationController?
@@ -119,13 +121,30 @@ class AppDelegate: UIResponder, UIApplicationDelegate, TVApplicationControllerDe
     
     //call this method once after setting up your appController.
     func appController(_ appController: TVApplicationController, evaluateAppJavaScriptIn jsContext: JSContext){
-        let debug : @convention(block) (NSString!) -> Void = {
-            (string : NSString!) -> Void in
-            #if DEBUG
-                print("[log]: \(string)\n")
-            #endif
+        let playVideoWithModifiedHTTPHeader : @convention(block) (String, [String : String]) -> Void = {
+            (videoURL : String, headers: [String : String]) -> Void in
+//            #if DEBUG
+//                print("\(string)\n, \(string2)\n")
+//            #endif
+            let url = URL.init(string: videoURL)
+//            let asset: AVURLAsset = AVURLAsset.URLAssetWithURL(videoURL, options: ["AVURLAssetHTTPHeaderFieldsKey": headers])
+            let options = ["AVURLAssetHTTPHeaderFieldsKey": headers]
+            let asset: AVURLAsset = AVURLAsset.init(url: url!, options: options)
+            let playerItem = AVPlayerItem.init(asset: asset)
+            let player: AVPlayer = AVPlayer.init(playerItem: playerItem)
+//            let playerLayer = AVPlayerLayer(player: player)
+            let playerController = AVPlayerViewController()
+            playerController.player = player
+            self.addChildViewController(playerController)
+            self.view.addSubview(playerController.view)
+            playerController.view.frame = self.view.frame
+//            playerLayer.frame = self.view.bounds
+//            self.view.layer.addSublayer(playerLayer)
+            appController.navigationController.pushViewController(playerController, animated: true)
+            player.play()
+//            return player
         }
-        jsContext.setObject(unsafeBitCast(debug, to: AnyObject.self), forKeyedSubscript: "debug" as (NSCopying & NSObjectProtocol))
+        jsContext.setObject(unsafeBitCast(playVideoWithModifiedHTTPHeader, to: AnyObject.self), forKeyedSubscript: "playVideoWithModifiedHTTPHeader" as (NSCopying & NSObjectProtocol))
     }
 }
 

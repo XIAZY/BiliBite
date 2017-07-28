@@ -129,19 +129,23 @@ function getStringFromURL(url) {
     return request.response;
 }
 
-function playMedia(videourl, mediaType) {
-    var singleVideo = new MediaItem(mediaType, videourl);
-    var videoList = new Playlist();
-    videoList.push(singleVideo);
-    var myPlayer = new Player();
-    myPlayer.playlist = videoList;
-    myPlayer.play();
+function playMedia(videoURL, mediaType) {
+//    var singleVideo = new MediaItem(mediaType, videourl);
+//    var videoList = new Playlist();
+//    videoList.push(singleVideo);
+//    var myPlayer = new Player();
+//    myPlayer.playlist = videoList;
+//    myPlayer.play();
+    var headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36", "referer": "http://www.bilibili.com/video/av12328751"};
+    playVideoWithModifiedHTTPHeader(videoURL, headers);
+    print("you are fucked")
 }
 
 App.onLaunch = function(options) {
-    debug("test");
     baseURL = options.BASEURL;
     var startDocumentURL = baseURL + "menuBar.xml";
     
     loadAndPushDocument(startDocumentURL);
+    
+    
 }
