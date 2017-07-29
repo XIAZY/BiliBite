@@ -1,19 +1,24 @@
 <document>
     <compilationTemplate>
         <list>
+            <relatedContent>
+                <itemBanner>
+                    <description>Hello</description>
+                </itemBanner>
+            </relatedContent>
             <header>
                 <title>This is the title of this compilation</title>
-                <subtitle>author</subtitle>
+                <subtitle>Author</subtitle>
             </header>
             <section>
-                <description>Description</description>
+                <description></description>
             </section>
             <section>
                 <listItemLockup av="12429337">
                     <title>第一集</title>
                     <relatedContent>
                         <lockup>
-                            <img src="http://i2.hdslb.com/bfs/archive/edf36e68a81f84da76aa649f5f338ba55478f83d.jpg" width="558" height="349" />
+                            <heroImg src="http://i2.hdslb.com/bfs/archive/edf36e68a81f84da76aa649f5f338ba55478f83d.jpg" width="558" height="349" />
                             <title>不见不闻</title>
                         </lockup>
                     </relatedContent>

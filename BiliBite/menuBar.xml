@@ -4,7 +4,7 @@
             <menuItem selectTargetURL="page1.xml">
                 <title>page1</title>
             </menuItem>
-            <menuItem selectTargetURL="page2.xml">
+            <menuItem sid="6339">
                 <title>page2</title>
             </menuItem>
         </menuBar>
