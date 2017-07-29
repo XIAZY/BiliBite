@@ -14,7 +14,6 @@
 /* Begin PBXFileReference section */
 		16055A611F285264000F3AF7 /* BiliBite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BiliBite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		16055A641F285264000F3AF7 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		16055A671F285264000F3AF7 /* application.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = application.js; sourceTree = "<group>"; };
 		16055A681F285264000F3AF7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		16055A6A1F285264000F3AF7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -61,7 +60,6 @@
 		16055A661F285264000F3AF7 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				16055A671F285264000F3AF7 /* application.js */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
