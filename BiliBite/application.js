@@ -1,7 +1,7 @@
 var baseURL;
 
 
-var BangumiCompilation = {
+var BangumiBundle = {
   createNew: function(seasonID) {
     var APIURL = "https://www.biliplus.com/api/bangumi?season=" + seasonID;
     var request = new XMLHttpRequest;
@@ -9,21 +9,22 @@ var BangumiCompilation = {
     request.send();
     var info = JSON.parse(request.response);
 
-    var bangumiCompilation = {};
+    var bangumiBundle = {};
 
     var episodes = info['result']['episodes'];
-    bangumiCompilation.seasonID = seasonID;
-    bangumiCompilation.info = info['result'];
-    bangumiCompilation.isSuccess = info['message'] == 'success';
-    bangumiCompilation.title = bangumiCompilation.info['title'];
-    bangumiCompilation.original_name = bangumiCompilation.info['origin_name'];
-    bangumiCompilation.cover = bangumiCompilation.info['cover'];
-    bangumiCompilation.episodes = bangumiCompilation.info['episodes'];
-    bangumiCompilation.briefDescription = bangumiCompilation.info['brief'];
-    bangumiCompilation.count = bangumiCompilation.episodes.length + ' Episodes';
-    bangumiCompilation.playCount = bangumiCompilation.info['play_count'] + ' Hits';
+    bangumiBundle.seasonID = seasonID;
+    bangumiBundle.info = info['result'];
+    bangumiBundle.isSuccess = info['message'] == 'success';
+    bangumiBundle.title = bangumiBundle.info['title'];
+    bangumiBundle.original_name = bangumiBundle.info['origin_name'];
+    bangumiBundle.cover = bangumiBundle.info['cover'];
+    bangumiBundle.episodes = bangumiBundle.info['episodes'];
+    bangumiBundle.description = bangumiBundle.info['evaluate'];
+    bangumiBundle.count = bangumiBundle.episodes.length + ' Episodes';
+    bangumiBundle.playCount = bangumiBundle.info['play_count'] + ' Hits';
+    bangumiBundle.staff = bangumiBundle.info['staff']
 
-    bangumiCompilation.getAVVideoObjects = function () {
+    bangumiBundle.getAVVideoObjects = function () {
       var avVideoObjects = [];
       for (var i=0, len=episodes.length; i < len; i++) {
         var avVideoObject = AVVideo.createNew(episodes[i]['av_id']);
@@ -32,23 +33,47 @@ var BangumiCompilation = {
       return avVideoObjects;
     }
 
-    bangumiCompilation.getXMLString = function() {
-      var XMLHeaderString ='<document><compilationTemplate><list><relatedContent><itemBanner>' + '<heroImg src="' + bangumiCompilation.cover + '" />' + '</itemBanner>' + '</relatedContent><header><title>' + bangumiCompilation.title + '</title><subtitle>' + bangumiCompilation.original_name + '</subtitle><row><text>' + bangumiCompilation.count + '</text><text>' + bangumiCompilation.playCount +'</text></row></header><section><description>' + bangumiCompilation.briefDescription + '</description></section><section>';
-      var XMLString = XMLHeaderString;
-      for (var i=0, len=episodes.length; i < len; i++) {
-          var episode = episodes[i];
-          var episodeTitle = episode['index_title'];
-          var episodeCoverURL = episode['cover'];
-          var episodeAVNumber = episode['av_id'];
-          var episodeIndex = 'Episode' + episode['index']
-          var episodeXMLString = '<listItemLockup av="'+ episodeAVNumber + '"><title>' + episodeTitle + '</title><relatedContent><lockup><img src="' + episodeCoverURL + '" /><title>' + episodeIndex + '</title></lockup></relatedContent></listItemLockup>';
-          XMLString = XMLString + episodeXMLString;
+    bangumiBundle.getXMLString = function() {
+      var XMLString = '<document><productBundleTemplate><background></background><banner><stack><title>' + bangumiBundle.title + '</title><subtitle>' + bangumiBundle.original_name + '</subtitle><row>';
+      for (var i=0, length = bangumiBundle.info['tags'].length; i < length; i++) {
+        var tag = bangumiBundle.info['tags'][i];
+        var tagName = tag['tag_name'];
+        var tagXMLLine = '<text>' + tagName + '</text>';
+        XMLString += tagXMLLine;
       }
-      var XMLFooterString = '</section></list></compilationTemplate></document>';
-      XMLString = XMLString + XMLFooterString;
+      XMLString += '</row><description allowsZooming="true">' + bangumiBundle.description + '</description>';
+      XMLString += '</stack><heroImg src="' + bangumiBundle.cover + '" /></banner><shelf>';
+      XMLString += '<header><title>' + bangumiBundle.count + '</title></header><section>';
+      for (var i=0, length = bangumiBundle.episodes.length; i < length; i++) {
+        var episode = bangumiBundle.episodes[i];
+        episodeXMLString = '<lockup av="' + episode['av_id'] + '">';
+        episodeXMLString += '<img src="' + episode['cover'] + '" width="495" height="309" />';
+        episodeXMLString += '<title>' + episode['index_title'] + '</title>';
+        episodeXMLString += '</lockup>';
+        XMLString += episodeXMLString;
+      }
+      XMLString += '</section></shelf><shelf><header><title>Staff</title></header><section>';
+      var staffXML = '';
+      var staffs = bangumiBundle.staff.split("\n");
+      for (var i = 0, len = staffs.length; i < len; i++) {
+        var staff = staffs[i];
+        var staffArray = staff.split('：');
+        var staffTitle = staffArray[0];
+        var staffNames = staffArray[1].split('、');
+        for (var j=0, staffLen = staffNames.length; j < staffLen; j ++) {
+          staffXML += '<monogramLockup>';
+          var staffName = staffNames[j];
+          staffXML += '<monogram firstName="' + staffName +'" lastName="" />';
+          staffXML += '<title>' + staffName + '</title>';
+          staffXML += '<subtitle>' + staffTitle + '</subtitle>';
+          staffXML += '</monogramLockup>';
+        }
+      }
+      XMLString += staffXML;
+      XMLString += '</section></shelf></productBundleTemplate></document>';
       return XMLString;
     }
-    return bangumiCompilation;
+    return bangumiBundle;
   }
 }
 
@@ -102,7 +127,7 @@ var AVVideo = {
 
 var SingleVideo = {
   createNew: function(avID, page) {
-    var APIURL = "https://www.biliplus.com/api/geturl?udpate=1&av=" + avID + "&page=" + page;
+    var APIURL = "https://www.biliplus.com/api/geturl?update=1&av=" + avID + "&page=" + page;
     var request = new XMLHttpRequest;
     request.open('GET', APIURL, false);
     request.send();
@@ -144,7 +169,27 @@ var SingleVideo = {
   }
 }
 
-
+// var TagList = {
+//   var thisSeasonTagID = '167';
+//   createNew: function(tagID) {
+//     if (!tagID) {
+//       var APIURL = 'https://bangumi.bilibili.com/api/get_season_by_tag_v2?tag_id=' + CoverBangumi.thisSeasonTagID;
+//     } else {
+//       var APIURL = 'https://bangumi.bilibili.com/api/get_season_by_tag_v2?tag_id=' + tagID;
+//     }
+//     var request = new XMLHttpRequest;
+//     request.open('GET', APIURL, false);
+//     request.send();
+//
+//     var tagList = {};
+//     tagList.info = JSON.parse(request.response)['result'];
+//     tagList.tagName = tagList.info['info']['tag_name'];
+//
+//     tagList.getXMLString = function() {
+//       var XMLHeader = 'a'
+//     }
+//   }
+// }
 
 
 
@@ -230,14 +275,14 @@ function handleSelectEvent(event) {
     targetURL = baseURL + targetURL;
 
     if (selectedElement.tagName == "menuItem" && seasonID) {
-        var bangumiCompilation = BangumiCompilation.createNew(seasonID);
-        var document = getDocumentObjectFromXMLString(bangumiCompilation.getXMLString());
+        var bangumiBundle = BangumiBundle.createNew(seasonID);
+        var document = getDocumentObjectFromXMLString(bangumiBundle.getXMLString());
         updateMenuItemFromDocumentObject(selectedElement, document);
     } else if (selectedElement.tagName == 'listItemLockup' && avNumber && page) {
         var singleVideo = SingleVideo.createNew(avNumber, page);
         var document = getDocumentObjectFromXMLString(singleVideo.getXMLString(selectedElement.getAttribute("name")));
         pushDocumentFromDocumentObject(document);
-    } else if (selectedElement.tagName == "listItemLockup" && avNumber){
+    } else if (selectedElement.tagName == "lockup" && avNumber){
           var avVideo = AVVideo.createNew(avNumber);
           var document = getDocumentObjectFromXMLString(avVideo.getXMLString());
           pushDocumentFromDocumentObject(document);
