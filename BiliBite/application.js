@@ -1,5 +1,12 @@
 var baseURL;
 
+if(typeof(String.prototype.trim) === "undefined")
+{
+    String.prototype.trim = function()
+    {
+        return String(this).replace(/^\s+|\s+$/g, '');
+    };
+}
 
 var BangumiBundle = {
   createNew: function(seasonID) {
@@ -22,7 +29,7 @@ var BangumiBundle = {
     bangumiBundle.description = bangumiBundle.info['evaluate'];
     bangumiBundle.count = bangumiBundle.episodes.length + ' Episodes';
     bangumiBundle.playCount = bangumiBundle.info['play_count'] + ' Hits';
-    bangumiBundle.staff = bangumiBundle.info['staff']
+      bangumiBundle.staff = bangumiBundle.info['staff'];
 
     bangumiBundle.getAVVideoObjects = function () {
       var avVideoObjects = [];
@@ -54,7 +61,7 @@ var BangumiBundle = {
       }
       XMLString += '</section></shelf><shelf><header><title>Staff</title></header><section>';
       var staffXML = '';
-      var staffs = bangumiBundle.staff.split("\n");
+      var staffs = bangumiBundle.staff.trim().split("\n");
       for (var i = 0, len = staffs.length; i < len; i++) {
         var staff = staffs[i];
         var staffArray = staff.split('：');
@@ -94,6 +101,7 @@ var AVVideo = {
     avVideo.cover = info['pic'];
     avVideo.author = info['author'];
     avVideo.videoList = info['list'];
+    avVideo.description = info['description']
 
     avVideo.getSingleVideoObjects = function() {
       var singleVideoObjects = [];
@@ -106,10 +114,24 @@ var AVVideo = {
       return singleVideoObjects;
     }
     avVideo.getXMLString = function() {
-      var XMLAlbumTitleLine = '<title>' + avVideo.title + '</title>';
+      // var XMLAlbumTitleLine = '<title>' + avVideo.title + '</title>';
       var XMLCoverPicLine = '<img src="' + avVideo.cover +'" />';
-      var XMLHeader = "<document><listTemplate><banner>" + XMLAlbumTitleLine + '</banner><list><section>';
-      var XMLString = XMLHeader;
+      // var XMLHeader = "<document><compilationTemplate><banner>" + XMLAlbumTitleLine + '</banner><list><section>';
+      // var XMLString = XMLHeader;
+      // for (var i=0, len=avVideo.videoList.length; i < len; i++) {
+      //     var videoDict = avVideo.videoList[i];
+      //     var videoName = videoDict["part"];
+      //     var videoPage = videoDict["page"];
+      //     var listItemLockupString = '<listItemLockup av="' + avVideo.avID + '" page="' + videoPage + '" name="' + videoName + '"><title>' + videoName + '</title><relatedContent><lockup>' + XMLCoverPicLine + '</lockup></relatedContent></listItemLockup>';
+      //     XMLString = XMLString + listItemLockupString;
+      // }
+      // var XMLFooterString = "</section></list></compilationTemplate></document>";
+      // XMLString = XMLString + XMLFooterString;
+      // return XMLString;
+      var XMLString = '<document><compilationTemplate><list><relatedContent><itemBanner>';
+      XMLString += '<heroImg src="' + avVideo.cover + '" /></itemBanner></relatedContent>';
+      XMLString += '<header><title>' + avVideo.title + '</title><subtitle>' + avVideo.author + '</subtitle></header>';
+      XMLString += '<section><description>' + avVideo.description + '</description></section><section>';
       for (var i=0, len=avVideo.videoList.length; i < len; i++) {
           var videoDict = avVideo.videoList[i];
           var videoName = videoDict["part"];
@@ -117,8 +139,7 @@ var AVVideo = {
           var listItemLockupString = '<listItemLockup av="' + avVideo.avID + '" page="' + videoPage + '" name="' + videoName + '"><title>' + videoName + '</title><relatedContent><lockup>' + XMLCoverPicLine + '</lockup></relatedContent></listItemLockup>';
           XMLString = XMLString + listItemLockupString;
       }
-      var XMLFooterString = "</section></list></listTemplate></document>";
-      XMLString = XMLString + XMLFooterString;
+      XMLString += '</section></list></compilationTemplate></document>';
       return XMLString;
     }
     return avVideo;
