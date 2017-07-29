@@ -8,6 +8,37 @@ if(typeof(String.prototype.trim) === "undefined")
     };
 }
 
+var MenuBar = {
+  createNew: function(menuItems) {
+    // menuItems : [{'title': title, 'params': {'param1': value1, 'param2', value2}}, {'title': title2, ...}]
+    var menuBar = {};
+    menuBar.menuItems = menuItems;
+    menuBar.getXMLString = function() {
+      var XMLString = '<document><menuBarTemplate><menuBar>';
+      for (var i=0, len = menuBar.menuItems.length; i<len; i++) {
+        var menuItem = menuBar.menuItems[i];
+        // menuItem is a dict
+        title = menuItem['title'];
+        params = menuItem['params'];
+        // params is a dict
+        var menuItemXML = '<menuItem';
+        for (var paramKey in params) {
+          if (params.hasOwnProperty (paramKey)) {
+            menuItemXML += ' ' + paramKey + '="' + params[paramKey] + '"';
+          }
+        }
+        menuItemXML += '>';
+        menuItemXML += '<title>' + title + '</title>';
+        menuItemXML += '</menuItem>'
+        XMLString += menuItemXML;
+      }
+      XMLString += '</menuBar></menuBarTemplate></document>';
+      return XMLString;
+    }
+    return menuBar;
+  }
+}
+
 var BangumiBundle = {
   createNew: function(seasonID) {
     var APIURL = "https://www.biliplus.com/api/bangumi?season=" + seasonID;
@@ -114,20 +145,7 @@ var AVVideo = {
       return singleVideoObjects;
     }
     avVideo.getXMLString = function() {
-      // var XMLAlbumTitleLine = '<title>' + avVideo.title + '</title>';
       var XMLCoverPicLine = '<img src="' + avVideo.cover +'" />';
-      // var XMLHeader = "<document><compilationTemplate><banner>" + XMLAlbumTitleLine + '</banner><list><section>';
-      // var XMLString = XMLHeader;
-      // for (var i=0, len=avVideo.videoList.length; i < len; i++) {
-      //     var videoDict = avVideo.videoList[i];
-      //     var videoName = videoDict["part"];
-      //     var videoPage = videoDict["page"];
-      //     var listItemLockupString = '<listItemLockup av="' + avVideo.avID + '" page="' + videoPage + '" name="' + videoName + '"><title>' + videoName + '</title><relatedContent><lockup>' + XMLCoverPicLine + '</lockup></relatedContent></listItemLockup>';
-      //     XMLString = XMLString + listItemLockupString;
-      // }
-      // var XMLFooterString = "</section></list></compilationTemplate></document>";
-      // XMLString = XMLString + XMLFooterString;
-      // return XMLString;
       var XMLString = '<document><compilationTemplate><list><relatedContent><itemBanner>';
       XMLString += '<heroImg src="' + avVideo.cover + '" /></itemBanner></relatedContent>';
       XMLString += '<header><title>' + avVideo.title + '</title><subtitle>' + avVideo.author + '</subtitle></header>';
@@ -190,27 +208,42 @@ var SingleVideo = {
   }
 }
 
-// var TagList = {
-//   var thisSeasonTagID = '167';
-//   createNew: function(tagID) {
-//     if (!tagID) {
-//       var APIURL = 'https://bangumi.bilibili.com/api/get_season_by_tag_v2?tag_id=' + CoverBangumi.thisSeasonTagID;
-//     } else {
-//       var APIURL = 'https://bangumi.bilibili.com/api/get_season_by_tag_v2?tag_id=' + tagID;
-//     }
-//     var request = new XMLHttpRequest;
-//     request.open('GET', APIURL, false);
-//     request.send();
-//
-//     var tagList = {};
-//     tagList.info = JSON.parse(request.response)['result'];
-//     tagList.tagName = tagList.info['info']['tag_name'];
-//
-//     tagList.getXMLString = function() {
-//       var XMLHeader = 'a'
-//     }
-//   }
-// }
+var TagList = {
+  thisSeasonTagID: '167',
+  createNew: function(tagID) {
+    if (!tagID) {
+      var APIURL = 'https://bangumi.bilibili.com/api/get_season_by_tag_v2?tag_id=' + TagList.thisSeasonTagID;
+    } else {
+      var APIURL = 'https://bangumi.bilibili.com/api/get_season_by_tag_v2?tag_id=' + tagID;
+    }
+    var request = new XMLHttpRequest;
+    request.open('GET', APIURL, false);
+    request.send();
+
+    var tagList = {};
+    tagList.info = JSON.parse(request.response)['result'];
+    tagList.tagName = tagList.info['info']['tag_name'];
+    tagList.list = tagList.info['list'];
+
+    tagList.getXMLString = function() {
+      var XMLString = '<document><paradeTemplate><list><header>';
+      XMLString += '<title>' + tagList.tagName + '</title>';
+      XMLString += '</header><section>';
+      var imgDeckXML = '';
+      for (var i=0, len = tagList.list.length; i < len; i++) {
+        var videoDict = tagList.list[i];
+        videoTitle = videoDict['title'];
+        videoCover = videoDict['cover'];
+        seasonID = videoDict['season_id'];
+        XMLString += '<listItemLockup sid="' + seasonID + '"><title>' + videoTitle + '</title></listItemLockup>';
+        imgDeckXML += '<img src="' + videoCover + '" />';
+      }
+      XMLString += '</section><relatedContent><imgDeck>' + imgDeckXML + '</imgDeck></relatedContent></list></paradeTemplate></document>';
+      return XMLString;
+    }
+    return tagList;
+  }
+}
 
 
 
@@ -230,29 +263,13 @@ function alertTemplate() {
     return alertDoc;
 }
 
-function loadAndPushDocument(url) {
-    var loadingDocument = getDocumentObjectFromXMLString(loadingTemplate());
-    navigationDocument.pushDocument(loadingDocument);
-    var request = new XMLHttpRequest();
-    request.open("GET", url, true);
-
-    request.onreadystatechange = function() {
-        if (request.readyState != 4) {
-            return;
-        }
-
-        if (request.status == 200) {
-            var document = request.responseXML;
-            document.addEventListener("select", handleSelectEvent);
-            navigationDocument.replaceDocument(document, loadingDocument);
-        }
-        else {
-            navigationDocument.popDocument();
-            var alertDocument = getDocumentObjectFromXMLString(alertTemplate());
-            navigationDocument.presentModal(alertDocument);
-        }
-    };
-    request.send();
+function loadAndPushDocument(object) {
+  var loadingDocument = getDocumentObjectFromXMLString(loadingTemplate());
+  navigationDocument.pushDocument(loadingDocument);
+  var XMLString = object.getXMLString();
+  var document = getDocumentObjectFromXMLString(XMLString);
+  document.addEventListener("select", handleSelectEvent);
+  navigationDocument.replaceDocument(document, loadingDocument);
 }
 
 function pushDocumentFromDocumentObject(newDocument) {
@@ -289,28 +306,38 @@ function handleSelectEvent(event) {
     var avNumber = selectedElement.getAttribute("av");
     var seasonID = selectedElement.getAttribute("sid");
     var page = selectedElement.getAttribute("page");
+    var coverPage = selectedElement.getAttribute("coverPage");
 
-    if (!targetURL && !avNumber && !seasonID) {
+    if (!targetURL && !avNumber && !seasonID && !coverPage) {
         return;
     }
     targetURL = baseURL + targetURL;
 
-    if (selectedElement.tagName == "menuItem" && seasonID) {
+    if (seasonID) {
         var bangumiBundle = BangumiBundle.createNew(seasonID);
         var document = getDocumentObjectFromXMLString(bangumiBundle.getXMLString());
-        updateMenuItemFromDocumentObject(selectedElement, document);
+        if (selectedElement.tagName == 'menuItem') {
+          updateMenuItemFromDocumentObject(selectedElement, document);
+        } else {
+          pushDocumentFromDocumentObject(document);
+        }
     } else if (selectedElement.tagName == 'listItemLockup' && avNumber && page) {
         var singleVideo = SingleVideo.createNew(avNumber, page);
         var document = getDocumentObjectFromXMLString(singleVideo.getXMLString(selectedElement.getAttribute("name")));
         pushDocumentFromDocumentObject(document);
     } else if (selectedElement.tagName == "lockup" && avNumber){
-          var avVideo = AVVideo.createNew(avNumber);
-          var document = getDocumentObjectFromXMLString(avVideo.getXMLString());
-          pushDocumentFromDocumentObject(document);
+        var avVideo = AVVideo.createNew(avNumber);
+        var document = getDocumentObjectFromXMLString(avVideo.getXMLString());
+        pushDocumentFromDocumentObject(document);
+    } else if (selectedElement.tagName == "menuItem" && coverPage=='true') {
+        var tagParade = TagList.createNew();
+        var XMLString = tagParade.getXMLString();
+        var document = getDocumentObjectFromXMLString(XMLString);
+        updateMenuItemFromDocumentObject(selectedElement, document);
     } else if (selectedElement.tagName == "menuItem"){
-        updateMenuItem(selectedElement, targetURL);
+          updateMenuItem(selectedElement, targetURL);
     } else {
-        loadAndPushDocument(targetURL);
+        navigationDocument.pushDocument(getDocumentObjectFromXMLString(alertTemplate));
     }
 }
 
@@ -333,9 +360,6 @@ function playMedia(videoURL, mediaType) {
 }
 
 App.onLaunch = function(options) {
-    baseURL = options.BASEURL;
-    var startDocumentURL = baseURL + "menuBar.xml";
-
-    loadAndPushDocument(startDocumentURL);
-
-}
+    var menuBar = MenuBar.createNew([{'title': 'Season\'s New', 'params': {'coverPage': 'true'}}]);
+    loadAndPushDocument(menuBar);
+  }
