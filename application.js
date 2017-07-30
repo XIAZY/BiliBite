@@ -196,6 +196,9 @@ var SingleVideo = {
         if (videoDict['type'] == 'single') {
           var videoName = videoDict["name"];
           var videoURL = videoDict["url"];
+          if (videoName == 'HD MP4') {
+            singleVideo.hdURL = videoURL;
+          }
           var listItemLockupString = '<listItemLockup onselect="playMedia(\'' + videoURL + '\', \'video\')"><title>' + videoName + '</title></listItemLockup>';
           XMLString = XMLString + listItemLockupString;
         }
@@ -280,18 +283,18 @@ function loadAndPushDocument(object) {
 }
 
 function updateDocumentFromClassAndSelectedElement(object, selectedElement) {
-  if (selectedElement.tagName != 'menuItem') {
-    var loadingDocument = getDocumentObjectFromXMLString(loadingTemplate());
-    navigationDocument.pushDocument(loadingDocument);
-  }
   var XMLString = object.getXMLString();
-  var document = getDocumentObjectFromXMLString(XMLString);
-  document.addEventListener("select", handleSelectEvent);
-  if (selectedElement.tagName == 'menuItem') {
-    var menuItemDocument = selectedElement.parentNode.getFeature("MenuBarDocument");
-    menuItemDocument.setDocument(document, selectedElement)
+  if (object.hdURL) {
+    playMedia(object.hdURL);
   } else {
-    navigationDocument.replaceDocument(document, loadingDocument);
+    var document = getDocumentObjectFromXMLString(XMLString);
+    document.addEventListener("select", handleSelectEvent);
+    if (selectedElement.tagName == 'menuItem') {
+      var menuItemDocument = selectedElement.parentNode.getFeature("MenuBarDocument");
+      menuItemDocument.setDocument(document, selectedElement)
+    } else {
+      navigationDocument.pushDocument(document);
+    }
   }
 }
 
@@ -336,7 +339,7 @@ function getStringFromURL(url) {
     return request.response;
 }
 
-function playMedia(videoURL, mediaType) {
+function playMedia(videoURL) {
 //    var singleVideo = new MediaItem(mediaType, videourl);
 //    var videoList = new Playlist();
 //    videoList.push(singleVideo);
