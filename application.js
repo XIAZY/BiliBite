@@ -196,7 +196,7 @@ var SingleVideo = {
         if (videoDict['type'] == 'single') {
           var videoName = videoDict["name"];
           var videoURL = videoDict["url"];
-          var listItemLockupString = '<listItemLockup onselect="playMedia(\'' + videoURL.replace(new RegExp('&', 'g'), '&amp;') + '\', \'video\')"><title>' + videoName + '</title></listItemLockup>';
+          var listItemLockupString = '<listItemLockup onselect="playMedia(\'' + videoURL + '\', \'video\')"><title>' + videoName + '</title></listItemLockup>';
           XMLString = XMLString + listItemLockupString;
         }
       }
@@ -208,11 +208,13 @@ var SingleVideo = {
   }
 }
 
-var TagList = {
+var TagParade = {
   thisSeasonTagID: '167',
   createNew: function(tagID) {
     if (!tagID) {
-      var APIURL = 'https://bangumi.bilibili.com/api/get_season_by_tag_v2?tag_id=' + TagList.thisSeasonTagID;
+      var APIURL = 'https://bangumi.bilibili.com/api/get_season_by_tag_v2?tag_id=' + TagParade.thisSeasonTagID;
+    } else if (tagID == 'onScreen') {
+      var APIURL = 'https://bangumi.bilibili.com/api/timeline_v2';
     } else {
       var APIURL = 'https://bangumi.bilibili.com/api/get_season_by_tag_v2?tag_id=' + tagID;
     }
@@ -220,18 +222,23 @@ var TagList = {
     request.open('GET', APIURL, false);
     request.send();
 
-    var tagList = {};
-    tagList.info = JSON.parse(request.response)['result'];
-    tagList.tagName = tagList.info['info']['tag_name'];
-    tagList.list = tagList.info['list'];
+    var tagParade = {};
+    if (tagID == 'onScreen') {
+      tagParade.info = JSON.parse(request.response);
+      tagParade.tagName = 'On Screen';
+    } else {
+      tagParade.info = JSON.parse(request.response)['result'];
+      tagParade.tagName = tagParade.info['info']['tag_name'];
+    }
+    tagParade.list = tagParade.info['list'];
 
-    tagList.getXMLString = function() {
+    tagParade.getXMLString = function() {
       var XMLString = '<document><paradeTemplate><list><header>';
-      XMLString += '<title>' + tagList.tagName + '</title>';
+      XMLString += '<title>' + tagParade.tagName + '</title>';
       XMLString += '</header><section>';
       var imgDeckXML = '';
-      for (var i=0, len = tagList.list.length; i < len; i++) {
-        var videoDict = tagList.list[i];
+      for (var i=0, len = tagParade.list.length; i < len; i++) {
+        var videoDict = tagParade.list[i];
         videoTitle = videoDict['title'];
         videoCover = videoDict['cover'];
         seasonID = videoDict['season_id'];
@@ -241,7 +248,7 @@ var TagList = {
       XMLString += '</section><relatedContent><imgDeck>' + imgDeckXML + '</imgDeck></relatedContent></list></paradeTemplate></document>';
       return XMLString;
     }
-    return tagList;
+    return tagParade;
   }
 }
 
@@ -254,7 +261,7 @@ function loadingTemplate() {
 
 function getDocumentObjectFromXMLString(XMLString) {
     var parser = new DOMParser();
-    var parsed = parser.parseFromString(XMLString, "application/xml");
+    var parsed = parser.parseFromString(XMLString.replace(new RegExp('&', 'g'), '&amp;'), "application/xml");
     return parsed;
 }
 
@@ -302,19 +309,22 @@ function handleSelectEvent(event) {
     var seasonID = selectedElement.getAttribute("sid");
     var page = selectedElement.getAttribute("page");
     var coverPage = selectedElement.getAttribute("coverPage");
+    var tagID = selectedElement.getAttribute("tagID");
 
-    if (!targetURL && !avNumber && !seasonID && !coverPage) {
+    if (!targetURL && !avNumber && !seasonID && !coverPage && !tagID) {
         return;
     }
 
     if (coverPage == 'true') {
-      var object = TagList.createNew();
+      var object = TagParade.createNew();
     } else if (avNumber && page) {
       var object = SingleVideo.createNew(avNumber, page);
     } else if (avNumber) {
       var object = AVVideo.createNew(avNumber);
     } else if (seasonID) {
       var object = BangumiBundle.createNew(seasonID);
+    } else if (tagID) {
+      var object = TagParade.createNew(tagID);
     }
     updateDocumentFromClassAndSelectedElement(object, selectedElement);
 }
@@ -338,6 +348,6 @@ function playMedia(videoURL, mediaType) {
 }
 
 App.onLaunch = function(options) {
-    var menuBar = MenuBar.createNew([{'title': 'Season\'s New', 'params': {'coverPage': 'true'}}]);
+    var menuBar = MenuBar.createNew([{'title': 'Season\'s New', 'params': {'coverPage': 'true'}}, {'title': 'On Screen', 'params': {'tagID': 'onScreen'}}]);
     loadAndPushDocument(menuBar);
   }
