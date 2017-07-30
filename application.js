@@ -23,7 +23,7 @@ var MenuBar = {
         // params is a dict
         var menuItemXML = '<menuItem';
         for (var paramKey in params) {
-          if (params.hasOwnProperty (paramKey)) {
+          if (params.hasOwnProperty(paramKey)) {
             menuItemXML += ' ' + paramKey + '="' + params[paramKey] + '"';
           }
         }
@@ -255,7 +255,39 @@ var TagParade = {
   }
 }
 
+var TopChartCatalog = {
+  createNew: function() {
+    var APIURL = 'https://www.bilibili.com/index/ding.json';
+    var request = new XMLHttpRequest;
+    request.open('GET', APIURL, false);
+    request.send();
 
+    var topChartCatalog = {};
+    topChartCatalog.info = JSON.parse(request.response);
+
+    topChartCatalog.getXMLString = function() {
+      var XMLString = '<document><catalogTemplate><banner><title>Top Chart</title></banner><list><section>';
+      for (var catalogKey in topChartCatalog.info) {
+        if (topChartCatalog.info.hasOwnProperty(catalogKey)) {
+          var catalogDict = topChartCatalog.info[catalogKey];
+          XMLString += '<listItemLockup><title>' + catalogKey + '</title><relatedContent><grid><section>';
+          for (var videoKey in catalogDict) {
+            if (catalogDict.hasOwnProperty(videoKey)) {
+              var videoDict = catalogDict[videoKey];
+              XMLString += '<lockup av="' + videoDict['aid'] + '">'
+              XMLString += '<img src="' + videoDict['pic'] + '" width="495" height="309"/>';
+              XMLString += '<title>' + videoDict['title'] + '</title></lockup>';
+            }
+          }
+          XMLString += '</section></grid></relatedContent></listItemLockup>';
+        }
+      }
+      XMLString += '</section></list></catalogTemplate></document>';
+      return XMLString;
+    }
+    return topChartCatalog;
+  }
+}
 
 function loadingTemplate() {
     var loadingDoc = "<document><loadingTemplate><activityIndicator><text>Loading Page</text></activityIndicator></loadingTemplate></document>";
@@ -285,8 +317,8 @@ function loadAndPushDocument(object) {
 function updateDocumentFromClassAndSelectedElement(object, selectedElement, loadingDocument) {
   var XMLString = object.getXMLString();
   if (object.hdURL) {
-    navigationDocument.popDocument();
     playMedia(object.hdURL);
+    navigationDocument.removeDocument(loadingDocument);
   } else {
     var document = getDocumentObjectFromXMLString(XMLString);
     document.addEventListener("select", handleSelectEvent);
@@ -314,8 +346,9 @@ function handleSelectEvent(event) {
     var page = selectedElement.getAttribute("page");
     var coverPage = selectedElement.getAttribute("coverPage");
     var tagID = selectedElement.getAttribute("tagID");
+    var topChart = selectedElement.getAttribute("topChart");
 
-    if (!targetURL && !avNumber && !seasonID && !coverPage && !tagID) {
+    if (!targetURL && !avNumber && !seasonID && !coverPage && !tagID && !topChart) {
         return;
     }
 
@@ -333,6 +366,8 @@ function handleSelectEvent(event) {
       var object = BangumiBundle.createNew(seasonID);
     } else if (tagID) {
       var object = TagParade.createNew(tagID);
+    } else if (topChart == 'true') {
+      var object = TopChartCatalog.createNew();
     }
     updateDocumentFromClassAndSelectedElement(object, selectedElement, loadingDocument);
 }
@@ -356,6 +391,6 @@ function playMedia(videoURL) {
 }
 
 App.onLaunch = function(options) {
-    var menuBar = MenuBar.createNew([{'title': 'Season\'s New', 'params': {'coverPage': 'true'}}, {'title': 'On Screen', 'params': {'tagID': 'onScreen'}}]);
+    var menuBar = MenuBar.createNew([{'title': 'Season\'s New', 'params': {'coverPage': 'true'}}, {'title': 'On Screen', 'params': {'tagID': 'onScreen'}}, {'title': 'Top Chart', 'params': {'topChart': 'true'}}]);
     loadAndPushDocument(menuBar);
   }
