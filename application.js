@@ -282,9 +282,10 @@ function loadAndPushDocument(object) {
   navigationDocument.replaceDocument(document, loadingDocument);
 }
 
-function updateDocumentFromClassAndSelectedElement(object, selectedElement) {
+function updateDocumentFromClassAndSelectedElement(object, selectedElement, loadingDocument) {
   var XMLString = object.getXMLString();
   if (object.hdURL) {
+    navigationDocument.popDocument();
     playMedia(object.hdURL);
   } else {
     var document = getDocumentObjectFromXMLString(XMLString);
@@ -293,7 +294,7 @@ function updateDocumentFromClassAndSelectedElement(object, selectedElement) {
       var menuItemDocument = selectedElement.parentNode.getFeature("MenuBarDocument");
       menuItemDocument.setDocument(document, selectedElement)
     } else {
-      navigationDocument.pushDocument(document);
+      navigationDocument.replaceDocument(document, loadingDocument);
     }
   }
 }
@@ -318,6 +319,10 @@ function handleSelectEvent(event) {
         return;
     }
 
+    if (selectedElement.tagName != 'menuItem') {
+      var loadingDocument = getDocumentObjectFromXMLString(loadingTemplate());
+      navigationDocument.pushDocument(loadingDocument);
+    }
     if (coverPage == 'true') {
       var object = TagParade.createNew();
     } else if (avNumber && page) {
@@ -329,7 +334,7 @@ function handleSelectEvent(event) {
     } else if (tagID) {
       var object = TagParade.createNew(tagID);
     }
-    updateDocumentFromClassAndSelectedElement(object, selectedElement);
+    updateDocumentFromClassAndSelectedElement(object, selectedElement, loadingDocument);
 }
 
 function getStringFromURL(url) {
