@@ -196,6 +196,9 @@ var SingleVideo = {
         if (videoDict['type'] == 'single') {
           var videoName = videoDict["name"];
           var videoURL = videoDict["url"];
+          if (videoName == 'HD MP4') {
+            singleVideo.hdURL = videoURL;
+          }
           var listItemLockupString = '<listItemLockup onselect="playMedia(\'' + videoURL + '\', \'video\')"><title>' + videoName + '</title></listItemLockup>';
           XMLString = XMLString + listItemLockupString;
         }
@@ -279,19 +282,20 @@ function loadAndPushDocument(object) {
   navigationDocument.replaceDocument(document, loadingDocument);
 }
 
-function updateDocumentFromClassAndSelectedElement(object, selectedElement) {
-  if (selectedElement.tagName != 'menuItem') {
-    var loadingDocument = getDocumentObjectFromXMLString(loadingTemplate());
-    navigationDocument.pushDocument(loadingDocument);
-  }
+function updateDocumentFromClassAndSelectedElement(object, selectedElement, loadingDocument) {
   var XMLString = object.getXMLString();
-  var document = getDocumentObjectFromXMLString(XMLString);
-  document.addEventListener("select", handleSelectEvent);
-  if (selectedElement.tagName == 'menuItem') {
-    var menuItemDocument = selectedElement.parentNode.getFeature("MenuBarDocument");
-    menuItemDocument.setDocument(document, selectedElement)
+  if (object.hdURL) {
+    navigationDocument.popDocument();
+    playMedia(object.hdURL);
   } else {
-    navigationDocument.replaceDocument(document, loadingDocument);
+    var document = getDocumentObjectFromXMLString(XMLString);
+    document.addEventListener("select", handleSelectEvent);
+    if (selectedElement.tagName == 'menuItem') {
+      var menuItemDocument = selectedElement.parentNode.getFeature("MenuBarDocument");
+      menuItemDocument.setDocument(document, selectedElement)
+    } else {
+      navigationDocument.replaceDocument(document, loadingDocument);
+    }
   }
 }
 
@@ -315,6 +319,10 @@ function handleSelectEvent(event) {
         return;
     }
 
+    if (selectedElement.tagName != 'menuItem') {
+      var loadingDocument = getDocumentObjectFromXMLString(loadingTemplate());
+      navigationDocument.pushDocument(loadingDocument);
+    }
     if (coverPage == 'true') {
       var object = TagParade.createNew();
     } else if (avNumber && page) {
@@ -326,7 +334,7 @@ function handleSelectEvent(event) {
     } else if (tagID) {
       var object = TagParade.createNew(tagID);
     }
-    updateDocumentFromClassAndSelectedElement(object, selectedElement);
+    updateDocumentFromClassAndSelectedElement(object, selectedElement, loadingDocument);
 }
 
 function getStringFromURL(url) {
@@ -336,7 +344,7 @@ function getStringFromURL(url) {
     return request.response;
 }
 
-function playMedia(videoURL, mediaType) {
+function playMedia(videoURL) {
 //    var singleVideo = new MediaItem(mediaType, videourl);
 //    var videoList = new Playlist();
 //    videoList.push(singleVideo);
