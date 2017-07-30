@@ -8,6 +8,18 @@ if(typeof(String.prototype.trim) === "undefined")
     };
 }
 
+var PageSearch  = {
+  createNew: function() {
+    var pageSearch = {};
+    pageSearch.name = 'search';
+    pageSearch.getXMLString = function() {
+      var XMLString = '<document><searchTemplate><searchField /><collectionList><shelf><header>Search</header></shelf></collectionList></searchTemplate></document>';
+      return XMLString;
+    }
+    return pageSearch;
+  }
+}
+
 var MenuBar = {
   createNew: function(menuItems) {
     // menuItems : [{'title': title, 'params': {'param1': value1, 'param2', value2}}, {'title': title2, ...}]
@@ -353,6 +365,9 @@ function updateDocumentFromClassAndSelectedElement(object, selectedElement, load
       menuItemDocument.setDocument(document, selectedElement)
     } else {
       navigationDocument.replaceDocument(document, loadingDocument);
+      }
+    if (object.name == 'search') {
+      search(document);
     }
   }
 }
@@ -374,8 +389,9 @@ function handleSelectEvent(event) {
     var tagID = selectedElement.getAttribute("tagID");
     var topChart = selectedElement.getAttribute("topChart");
     var tagCloud = selectedElement.getAttribute("tagCloud");
+    var search = selectedElement.getAttribute("search");
 
-    if (!targetURL && !avNumber && !seasonID && !coverPage && !tagID && !topChart && !tagCloud) {
+    if (!targetURL && !avNumber && !seasonID && !coverPage && !tagID && !topChart && !tagCloud && !search) {
         return;
     }
 
@@ -397,6 +413,8 @@ function handleSelectEvent(event) {
       var object = TopChartCatalog.createNew();
     } else if (tagCloud == 'true') {
       var object = TagCloudShowcase.createNew();
+    } else if (search == 'true') {
+      var object = PageSearch.createNew();
     }
     updateDocumentFromClassAndSelectedElement(object, selectedElement, loadingDocument);
 }
@@ -419,12 +437,63 @@ function playMedia(videoURL) {
     playVideoWithModifiedHTTPHeader(videoURL, headers);
 }
 
+function search(document) {
+    var searchField = document.getElementsByTagName("searchField").item(0);
+    var keyboard = searchField.getFeature("Keyboard");
+
+    keyboard.onTextChange = function() {
+            var searchText = keyboard.text;
+            console.log("Search text changed " + searchText);
+            searchResults(document, searchText);
+    }
+}
+
+function searchResults(doc, searchText) {
+    var regExp = new RegExp(searchText, "i");
+    var matchesText = function(value) {
+        return regExp.test(value);
+    }
+
+    var movies = {
+        "Surf": 1,
+        "Sand": 2,
+        "Fun": 3,
+    };
+    var titles = Object.keys(movies);
+    console.log(titles);
+
+    var domImplementation = doc.implementation;
+    var lsParser = domImplementation.createLSParser(1, null);
+    var lsInput = domImplementation.createLSInput();
+
+    lsInput.stringData = `<list>
+      <section>
+        <header>
+          <title>No Results</title>
+        </header>
+      </section>
+    </list>`;
+
+    titles = (searchText) ? titles.filter(matchesText) : titles;
+
+    if (titles.length > 0) {
+        lsInput.stringData = `<shelf><header><title>Results</title></header><section id="Results">`;
+        for (var i = 0; i < titles.length; i++) {
+            lsInput.stringData += `<lockup><img src="Enter path to images/images/Beach_Movie_HiRes/Beach_Movie_250x375_A.png" width="182" height="274" /><title>${titles[i]}</title></lockup>`
+        }
+        lsInput.stringData += `</section></shelf>`;
+    }
+
+    lsParser.parseWithContext(lsInput, doc.getElementsByTagName("collectionList").item(0), 2);
+}
+
 App.onLaunch = function(options) {
     var menu = [];
     menu.push({'title': 'Season\'s New', 'params': {'coverPage': 'true'}});
     menu.push({'title': 'On Screen', 'params': {'tagID': 'onScreen'}});
     menu.push({'title': 'Top Chart', 'params': {'topChart': 'true'}});
     menu.push({'title': 'Tag Cloud', 'params': {'tagCloud': 'true'}});
+    menu.push({'title': 'Search', 'params': {'search': 'true'}});
     var menuBar = MenuBar.createNew(menu);
     loadAndPushDocument(menuBar);
   }
