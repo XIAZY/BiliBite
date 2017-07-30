@@ -289,6 +289,32 @@ var TopChartCatalog = {
   }
 }
 
+var TagCloudShowcase = {
+  createNew: function() {
+    var APIURL = 'https://bangumi.bilibili.com/api/bangumi_index_cond';
+    var request = new XMLHttpRequest;
+    request.open('GET', APIURL, false);
+    request.send();
+
+    var tagCloudShowcase = {};
+    tagCloudShowcase.info = JSON.parse(request.response)['result'];
+    tagCloudShowcase.category = tagCloudShowcase.info['category'];
+
+    tagCloudShowcase.getXMLString = function() {
+      var XMLString = '<document><showcaseTemplate mode="showcase"><banner><title>Tag Cloud</title></banner><carousel><section>';
+      for (var i=0, len=tagCloudShowcase.category.length; i<len; i++) {
+        tagDict = tagCloudShowcase.category[i];
+        XMLString += '<lockup tagID="' + tagDict['tag_id'] + '">';
+        XMLString += '<img src="' + tagDict['cover'] + '" width="495" height="309" />';
+        XMLString += '<title>' + tagDict['tag_name'] + '</title></lockup>';
+      }
+      XMLString += '</section></carousel></showcaseTemplate></document>';
+      return XMLString;
+    }
+    return tagCloudShowcase;
+  }
+}
+
 function loadingTemplate() {
     var loadingDoc = "<document><loadingTemplate><activityIndicator><text>Loading Page</text></activityIndicator></loadingTemplate></document>";
     return loadingDoc;
@@ -347,8 +373,9 @@ function handleSelectEvent(event) {
     var coverPage = selectedElement.getAttribute("coverPage");
     var tagID = selectedElement.getAttribute("tagID");
     var topChart = selectedElement.getAttribute("topChart");
+    var tagCloud = selectedElement.getAttribute("tagCloud");
 
-    if (!targetURL && !avNumber && !seasonID && !coverPage && !tagID && !topChart) {
+    if (!targetURL && !avNumber && !seasonID && !coverPage && !tagID && !topChart && !tagCloud) {
         return;
     }
 
@@ -368,6 +395,8 @@ function handleSelectEvent(event) {
       var object = TagParade.createNew(tagID);
     } else if (topChart == 'true') {
       var object = TopChartCatalog.createNew();
+    } else if (tagCloud == 'true') {
+      var object = TagCloudShowcase.createNew();
     }
     updateDocumentFromClassAndSelectedElement(object, selectedElement, loadingDocument);
 }
@@ -391,6 +420,11 @@ function playMedia(videoURL) {
 }
 
 App.onLaunch = function(options) {
-    var menuBar = MenuBar.createNew([{'title': 'Season\'s New', 'params': {'coverPage': 'true'}}, {'title': 'On Screen', 'params': {'tagID': 'onScreen'}}, {'title': 'Top Chart', 'params': {'topChart': 'true'}}]);
+    var menu = [];
+    menu.push({'title': 'Season\'s New', 'params': {'coverPage': 'true'}});
+    menu.push({'title': 'On Screen', 'params': {'tagID': 'onScreen'}});
+    menu.push({'title': 'Top Chart', 'params': {'topChart': 'true'}});
+    menu.push({'title': 'Tag Cloud', 'params': {'tagCloud': 'true'}});
+    var menuBar = MenuBar.createNew(menu);
     loadAndPushDocument(menuBar);
   }
