@@ -152,7 +152,7 @@ var AVVideo = {
       XMLString += '<section><description>' + avVideo.description + '</description></section><section>';
       for (var i=0, len=avVideo.videoList.length; i < len; i++) {
           var videoDict = avVideo.videoList[i];
-          var videoName = videoDict["part"];
+          var videoName = 'P' + (i+1) + ' ' + videoDict["part"];
           var videoPage = videoDict["page"];
           var listItemLockupString = '<listItemLockup av="' + avVideo.avID + '" page="' + videoPage + '" name="' + videoName + '"><title>' + videoName + '</title><relatedContent><lockup>' + XMLCoverPicLine + '</lockup></relatedContent></listItemLockup>';
           XMLString = XMLString + listItemLockupString;
