@@ -272,25 +272,20 @@ function loadAndPushDocument(object) {
   navigationDocument.replaceDocument(document, loadingDocument);
 }
 
-function pushDocumentFromDocumentObject(newDocument) {
-    newDocument.addEventListener("select", handleSelectEvent);
-    navigationDocument.pushDocument(newDocument);
-}
-
-function updateMenuItem(menuItem, url) {
-    var request = new XMLHttpRequest();
-    request.open("GET", url, true);
-
-    request.onreadystatechange = function() {
-        if (request.status == 200) {
-            var document = request.responseXML;
-            document.addEventListener("select", handleSelectEvent);
-            var menuItemDocument = menuItem.parentNode.getFeature("MenuBarDocument");
-            menuItemDocument.setDocument(document, menuItem);
-        }
-    };
-
-    request.send();
+function updateDocumentFromClassAndSelectedElement(object, selectedElement) {
+  if (selectedElement.tagName != 'menuItem') {
+    var loadingDocument = getDocumentObjectFromXMLString(loadingTemplate());
+    navigationDocument.pushDocument(loadingDocument);
+  }
+  var XMLString = object.getXMLString();
+  var document = getDocumentObjectFromXMLString(XMLString);
+  document.addEventListener("select", handleSelectEvent);
+  if (selectedElement.tagName == 'menuItem') {
+    var menuItemDocument = selectedElement.parentNode.getFeature("MenuBarDocument");
+    menuItemDocument.setDocument(document, selectedElement)
+  } else {
+    navigationDocument.replaceDocument(document, loadingDocument);
+  }
 }
 
 function updateMenuItemFromDocumentObject(menuItem, DOM) {
@@ -311,34 +306,17 @@ function handleSelectEvent(event) {
     if (!targetURL && !avNumber && !seasonID && !coverPage) {
         return;
     }
-    targetURL = baseURL + targetURL;
 
-    if (seasonID) {
-        var bangumiBundle = BangumiBundle.createNew(seasonID);
-        var document = getDocumentObjectFromXMLString(bangumiBundle.getXMLString());
-        if (selectedElement.tagName == 'menuItem') {
-          updateMenuItemFromDocumentObject(selectedElement, document);
-        } else {
-          pushDocumentFromDocumentObject(document);
-        }
-    } else if (selectedElement.tagName == 'listItemLockup' && avNumber && page) {
-        var singleVideo = SingleVideo.createNew(avNumber, page);
-        var document = getDocumentObjectFromXMLString(singleVideo.getXMLString(selectedElement.getAttribute("name")));
-        pushDocumentFromDocumentObject(document);
-    } else if (selectedElement.tagName == "lockup" && avNumber){
-        var avVideo = AVVideo.createNew(avNumber);
-        var document = getDocumentObjectFromXMLString(avVideo.getXMLString());
-        pushDocumentFromDocumentObject(document);
-    } else if (selectedElement.tagName == "menuItem" && coverPage=='true') {
-        var tagParade = TagList.createNew();
-        var XMLString = tagParade.getXMLString();
-        var document = getDocumentObjectFromXMLString(XMLString);
-        updateMenuItemFromDocumentObject(selectedElement, document);
-    } else if (selectedElement.tagName == "menuItem"){
-          updateMenuItem(selectedElement, targetURL);
-    } else {
-        navigationDocument.pushDocument(getDocumentObjectFromXMLString(alertTemplate));
+    if (coverPage == 'true') {
+      var object = TagList.createNew();
+    } else if (avNumber && page) {
+      var object = SingleVideo.createNew(avNumber, page);
+    } else if (avNumber) {
+      var object = AVVideo.createNew(avNumber);
+    } else if (seasonID) {
+      var object = BangumiBundle.createNew(seasonID);
     }
+    updateDocumentFromClassAndSelectedElement(object, selectedElement);
 }
 
 function getStringFromURL(url) {
