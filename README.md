@@ -10,8 +10,10 @@ BiliBite is claimed to be the most elegant Bilibili client in the west hemispher
 This app may not be uploaded to the App Store since I don't have a developer account and US$99 a year is clearly too much for me. As a result, a Mac computer with Xcode installed is essential to deploy the app to an Apple TV. You may be required to re-deploy the app every week due to Apple's limitation on testing without a developer certificate.
 
 ## Examples
-![](http://i.imgur.com/vGYDTyC.gif)
-![](http://i.imgur.com/NioBrKl.gif)
+![](https://i.imgur.com/uDkBstB.jpg)
+![](https://i.imgur.com/4d1ArFh.jpg)
+![](https://i.imgur.com/SebVCKv.jpg)
+![](https://i.imgur.com/B9Gqqhv.png)
 
 # License
 This project is licensed under GPL v3.
