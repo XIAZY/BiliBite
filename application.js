@@ -9,9 +9,10 @@ if(typeof(String.prototype.trim) === "undefined")
 }
 
 var PageSearch  = {
-  createNew: function() {
+  createNew: function(searchText) {
     var pageSearch = {};
     pageSearch.name = 'search';
+    pageSearch.searchText = searchText;
     pageSearch.getXMLString = function() {
       var XMLString = '<document><searchTemplate><searchField /><collectionList><shelf><header>Search</header></shelf></collectionList></searchTemplate></document>';
       return XMLString;
@@ -367,7 +368,7 @@ function updateDocumentFromClassAndSelectedElement(object, selectedElement, load
       navigationDocument.replaceDocument(document, loadingDocument);
       }
     if (object.name == 'search') {
-      search(document);
+      search(document, object.searchText);
     }
   }
 }
@@ -387,11 +388,10 @@ function handleSelectEvent(event) {
     var page = selectedElement.getAttribute("page");
     var coverPage = selectedElement.getAttribute("coverPage");
     var tagID = selectedElement.getAttribute("tagID");
-    var topChart = selectedElement.getAttribute("topChart");
-    var tagCloud = selectedElement.getAttribute("tagCloud");
-    var search = selectedElement.getAttribute("search");
+    var searchText = selectedElement.getAttribute("searchText");
+    var id = selectedElement.getAttribute("id");
 
-    if (!targetURL && !avNumber && !seasonID && !coverPage && !tagID && !topChart && !tagCloud && !search) {
+    if (!id && !targetURL && !avNumber && !seasonID && !tagID && !searchText) {
         return;
     }
 
@@ -399,7 +399,7 @@ function handleSelectEvent(event) {
       var loadingDocument = getDocumentObjectFromXMLString(loadingTemplate());
       navigationDocument.pushDocument(loadingDocument);
     }
-    if (coverPage == 'true') {
+    if (id == 'coverPage') {
       var object = TagParade.createNew();
     } else if (avNumber && page) {
       var object = SingleVideo.createNew(avNumber, page);
@@ -409,18 +409,19 @@ function handleSelectEvent(event) {
       var object = BangumiBundle.createNew(seasonID);
     } else if (tagID) {
       var object = TagParade.createNew(tagID);
-    } else if (topChart == 'true') {
+    } else if (id == 'topChart') {
       var object = TopChartCatalog.createNew();
-    } else if (tagCloud == 'true') {
+    } else if (id == 'tagCloud') {
       var object = TagCloudShowcase.createNew();
-    } else if (search == 'true') {
-      var object = PageSearch.createNew();
+    } else if (id == 'search') {
+      var object = PageSearch.createNew(searchText);
     }
     updateDocumentFromClassAndSelectedElement(object, selectedElement, loadingDocument);
 }
 
 function getStringFromURL(url) {
     var request = new XMLHttpRequest;
+    url = encodeURI(url);
     request.open("GET", url, false);
     request.send();
     return request.response;
@@ -437,34 +438,32 @@ function playMedia(videoURL) {
     playVideoWithModifiedHTTPHeader(videoURL, headers);
 }
 
-function search(document) {
+function search(document, incomingSearchText) {
     var searchField = document.getElementsByTagName("searchField").item(0);
     var keyboard = searchField.getFeature("Keyboard");
 
+    if (incomingSearchText) {
+      keyboard.text = incomingSearchText;
+      searchString(document, incomingSearchText);
+    }
+
     keyboard.onTextChange = function() {
             var searchText = keyboard.text;
-            searchSuggests(document, searchText);
+            searchString(document, searchText);
     }
 }
 
-function searchSuggests(doc, searchText) {
+function searchString(doc, searchText) {
     var domImplementation = doc.implementation;
     var lsParser = domImplementation.createLSParser(1, null);
     var lsInput = domImplementation.createLSInput();
 
-    lsInput.stringData = `<list>
-      <section>
-        <header>
-          <title>No Results</title>
-        </header>
-      </section>
-    </list>`;
     var suggestAPIURL = 'https://app.bilibili.com/x/v2/search/suggest?keyword=' + searchText;
     var suggests = JSON.parse(getStringFromURL(suggestAPIURL))['data']['suggest'];
     // lsInput.stringData = `<shelf><header><title>Results</title></header><section id="Results">`;
     lsInput.stringData = `<shelf><header><title>Suggests</title></header><section id="suggests">`;
     for (var i = 0; i < suggests.length; i++) {
-      lsInput.stringData += `<listItemLockup><title>${suggests[i]}</title></listItemLockup>`;
+      lsInput.stringData += '<listItemLockup id="search" searchText="' + suggests[i] + '"><title>' + suggests[i] + '</title></listItemLockup>';
     }
     lsInput.stringData += `</section></shelf>`;
 
@@ -482,11 +481,11 @@ function searchSuggests(doc, searchText) {
 
 App.onLaunch = function(options) {
     var menu = [];
-    menu.push({'title': 'Season\'s New', 'params': {'coverPage': 'true'}});
+    menu.push({'title': 'Season\'s New', 'params': {'id': 'coverPage'}});
     menu.push({'title': 'On Screen', 'params': {'tagID': 'onScreen'}});
-    menu.push({'title': 'Top Chart', 'params': {'topChart': 'true'}});
-    menu.push({'title': 'Tag Cloud', 'params': {'tagCloud': 'true'}});
-    menu.push({'title': 'Search', 'params': {'search': 'true'}});
+    menu.push({'title': 'Top Chart', 'params': {'id': 'topChart'}});
+    menu.push({'title': 'Tag Cloud', 'params': {'id': 'tagCloud'}});
+    menu.push({'title': 'Search', 'params': {'id': 'search'}});
     var menuBar = MenuBar.createNew(menu);
     loadAndPushDocument(menuBar);
   }
