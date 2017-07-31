@@ -210,9 +210,9 @@ var SingleVideo = {
           var videoName = videoDict["name"];
           var videoURL = videoDict["url"];
           if (videoName == 'HD MP4') {
-            singleVideo.hdURL = videoURL;
+            singleVideo.defaultURL = videoURL;
           }
-          var listItemLockupString = '<listItemLockup onselect="playMedia(\'' + videoURL + '\', \'video\')"><title>' + videoName + '</title></listItemLockup>';
+          var listItemLockupString = '<listItemLockup onselect="playMedia(\'' + videoURL + '\', \'' + singleVideo.avID + '\')"><title>' + videoName + '</title></listItemLockup>';
           XMLString = XMLString + listItemLockupString;
         }
       }
@@ -355,8 +355,8 @@ function loadAndPushDocument(object) {
 
 function updateDocumentFromClassAndSelectedElement(object, selectedElement, loadingDocument) {
   var XMLString = object.getXMLString();
-  if (object.hdURL) {
-    playMedia(object.hdURL);
+  if (object.defaultURL) {
+    playMedia(object.defaultURL, object.avID);
     navigationDocument.removeDocument(loadingDocument);
   } else {
     var document = getDocumentObjectFromXMLString(XMLString);
@@ -427,14 +427,14 @@ function getStringFromURL(url) {
     return request.response;
 }
 
-function playMedia(videoURL) {
+function playMedia(videoURL, avNumber) {
 //    var singleVideo = new MediaItem(mediaType, videourl);
 //    var videoList = new Playlist();
 //    videoList.push(singleVideo);
 //    var myPlayer = new Player();
 //    myPlayer.playlist = videoList;
 //    myPlayer.play();
-    var headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36", "referer": "http://www.bilibili.com/video/av12328751"};
+    var headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36", "referer": "http://www.bilibili.com/video/av" + avNumber};
     playVideoWithModifiedHTTPHeader(videoURL, headers);
 }
 
