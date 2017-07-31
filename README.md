@@ -15,6 +15,11 @@ This app may not be uploaded to the App Store since I don't have a developer acc
 ![](https://i.imgur.com/SebVCKv.jpg)
 ![](https://i.imgur.com/B9Gqqhv.png)
 
+GIFs:
+
+http://i.imgur.com/vGYDTyC.gif
+
+http://i.imgur.com/NioBrKl.gif
 # License
 This project is licensed under GPL v3.
 
