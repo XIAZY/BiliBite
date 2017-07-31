@@ -443,25 +443,11 @@ function search(document) {
 
     keyboard.onTextChange = function() {
             var searchText = keyboard.text;
-            console.log("Search text changed " + searchText);
-            searchResults(document, searchText);
+            searchSuggests(document, searchText);
     }
 }
 
-function searchResults(doc, searchText) {
-    var regExp = new RegExp(searchText, "i");
-    var matchesText = function(value) {
-        return regExp.test(value);
-    }
-
-    var movies = {
-        "Surf": 1,
-        "Sand": 2,
-        "Fun": 3,
-    };
-    var titles = Object.keys(movies);
-    console.log(titles);
-
+function searchSuggests(doc, searchText) {
     var domImplementation = doc.implementation;
     var lsParser = domImplementation.createLSParser(1, null);
     var lsInput = domImplementation.createLSInput();
@@ -473,16 +459,23 @@ function searchResults(doc, searchText) {
         </header>
       </section>
     </list>`;
-
-    titles = (searchText) ? titles.filter(matchesText) : titles;
-
-    if (titles.length > 0) {
-        lsInput.stringData = `<shelf><header><title>Results</title></header><section id="Results">`;
-        for (var i = 0; i < titles.length; i++) {
-            lsInput.stringData += `<lockup><img src="Enter path to images/images/Beach_Movie_HiRes/Beach_Movie_250x375_A.png" width="182" height="274" /><title>${titles[i]}</title></lockup>`
-        }
-        lsInput.stringData += `</section></shelf>`;
+    var suggestAPIURL = 'https://app.bilibili.com/x/v2/search/suggest?keyword=' + searchText;
+    var suggests = JSON.parse(getStringFromURL(suggestAPIURL))['data']['suggest'];
+    // lsInput.stringData = `<shelf><header><title>Results</title></header><section id="Results">`;
+    lsInput.stringData = `<shelf><header><title>Suggests</title></header><section id="suggests">`;
+    for (var i = 0; i < suggests.length; i++) {
+      lsInput.stringData += `<listItemLockup><title>${suggests[i]}</title></listItemLockup>`;
     }
+    lsInput.stringData += `</section></shelf>`;
+
+    var searchAPIURL = 'https://app.bilibili.com/x/v2/search?keyword=' + searchText;
+    var searchResult = JSON.parse(getStringFromURL(searchAPIURL))['data']['items']['archive'];
+    lsInput.stringData += '<shelf><header><title>Results</title></header><section id="results">';
+    for (var i=0; i<searchResult.length; i++) {
+      var result = searchResult[i];
+      lsInput.stringData += '<lockup av="' + result['param'] + '"><img src="https:' + result['cover'] + '" width="612" height="495" /><title>' + result['title'] + '</title></lockup>';
+    }
+    lsInput.stringData += '</section></shelf>';
 
     lsParser.parseWithContext(lsInput, doc.getElementsByTagName("collectionList").item(0), 2);
 }
