@@ -434,7 +434,7 @@ function playMedia(videoURL, avNumber) {
 //    var myPlayer = new Player();
 //    myPlayer.playlist = videoList;
 //    myPlayer.play();
-    var headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36", "referer": "http://www.bilibili.com/video/av" + avNumber};
+    var headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36", "referer": "https://www.bilibili.com/video/av" + avNumber};
     playVideoWithModifiedHTTPHeader(videoURL, headers);
 }
 
