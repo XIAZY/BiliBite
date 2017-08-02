@@ -23,4 +23,4 @@ http://i.imgur.com/NioBrKl.gif
 # License
 This project is licensed under GPL v3.
 
-You ARE NOT ALLOWED to upload this app to the App Store under your account without the consent from me.
+You are NOT ALLOWED to upload this app to the App Store or release any signed binary package (i.e. end-user installable) under your account without the consent from me.
