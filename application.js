@@ -92,7 +92,7 @@ var BangumiBundle = {
         var tagXMLLine = '<text>' + tagName + '</text>';
         XMLString += tagXMLLine;
       }
-      XMLString += '</row><description allowsZooming="true">' + bangumiBundle.description + '</description>';
+      XMLString += '</row><description allowsZooming="true">' + bangumiBundle.description + '\n\n\n\n' + '</description>';
       XMLString += '</stack><heroImg src="' + bangumiBundle.cover + '" /></banner><shelf>';
       XMLString += '<header><title>' + bangumiBundle.count + '</title></header><section>';
       for (var i=0, length = bangumiBundle.episodes.length; i < length; i++) {
