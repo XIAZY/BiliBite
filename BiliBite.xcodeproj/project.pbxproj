@@ -53,9 +53,8 @@
 				16055A6A1F285264000F3AF7 /* Info.plist */,
 				16055A661F285264000F3AF7 /* Supporting Files */,
 			);
-			name = BiliBite;
-			path = ../../../../Users/xia/Documents/Dev/iDev/BiliBite/BiliBite;
-			sourceTree = DEVELOPER_DIR;
+			path = BiliBite;
+			sourceTree = SOURCE_ROOT;
 		};
 		16055A661F285264000F3AF7 /* Supporting Files */ = {
 			isa = PBXGroup;
