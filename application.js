@@ -167,7 +167,8 @@ var AVVideo = {
           var videoDict = avVideo.videoList[i];
           var videoName = 'P' + (i+1) + ' ' + videoDict["part"];
           var videoPage = videoDict["page"];
-          var listItemLockupString = '<listItemLockup av="' + avVideo.avID + '" page="' + videoPage + '" name="' + videoName + '"><title>' + videoName + '</title><relatedContent><lockup>' + XMLCoverPicLine + '</lockup></relatedContent></listItemLockup>';
+          var cid = videoDict['cid'];
+          var listItemLockupString = '<listItemLockup av="' + avVideo.avID + '" page="' + videoPage + '" name="' + videoName + `" cid=${cid}><title>' + videoName + '</title><relatedContent><lockup>' + XMLCoverPicLine + '</lockup></relatedContent></listItemLockup>`;
           XMLString = XMLString + listItemLockupString;
       }
       XMLString += '</section></list></compilationTemplate></document>';
