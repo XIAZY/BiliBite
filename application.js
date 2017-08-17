@@ -167,8 +167,7 @@ var AVVideo = {
           var videoDict = avVideo.videoList[i];
           var videoName = 'P' + (i+1) + ' ' + videoDict["part"];
           var videoPage = videoDict["page"];
-          var cid = videoDict['cid'];
-          var listItemLockupString = '<listItemLockup av="' + avVideo.avID + '" page="' + videoPage + '" name="' + videoName + `" cid="${cid}"><title>${videoName}</title><relatedContent><lockup>${XMLCoverPicLine}</lockup></relatedContent></listItemLockup>`;
+          var listItemLockupString = '<listItemLockup av="' + avVideo.avID + '" page="' + videoPage + '" name="' + videoName + '"><title>' + videoName + '</title><relatedContent><lockup>' + XMLCoverPicLine + '</lockup></relatedContent></listItemLockup>';
           XMLString = XMLString + listItemLockupString;
       }
       XMLString += '</section></list></compilationTemplate></document>';
@@ -179,56 +178,49 @@ var AVVideo = {
 }
 
 var SingleVideo = {
-  createNew: function(avID, page, cid) {
+  createNew: function(avID, page) {
+    var APIURL = "https://www.biliplus.com/api/geturl?update=1&av=" + avID + "&page=" + page;
+    var request = new XMLHttpRequest;
+    request.open('GET', APIURL, false);
+    request.send();
+    var info = JSON.parse(request.response)['data'];
+
     var singleVideo = {};
     singleVideo.avID = avID;
     singleVideo.page = page;
-    singleVideo.cid = cid;
     singleVideo.videoList = info;
 
-    var getCIDDirectAPI = `https://us-central1-cloud-176520.cloudfunctions.net/BiliAPI?cid=${cid}`;
-    var cloudFuncRequest = new XMLHttpRequest;
-    cloudFuncRequest.open('GET', getCIDDirectAPI, false);
-    cloudFuncRequest.send();
-    var urlDict = JSON.parse(cloudFuncRequest.response);
-    if (defaultURL = urlDict['videoURL']) {
-      singleVideo.defaultURL = defaultURL;
-    } else {
-      var APIURL = "https://www.biliplus.com/api/geturl?update=1&av=" + avID + "&page=" + page;
-      var request = new XMLHttpRequest;
-      request.open('GET', APIURL, false);
-      request.send();
-      var info = JSON.parse(request.response)['data'];
-
-      singleVideo.getSingleVideoURL = function() {
-        var singleVideoURLList = [];
-        for (var i=0, len=info.length; i < len; i++) {
-          if (info[i]['type'] == 'single') {
-            singleVideoURLList.push(info[i]);
-          }
+    singleVideo.getSingleVideoURL = function() {
+      var singleVideoURLList = [];
+      for (var i=0, len=info.length; i < len; i++) {
+        if (info[i]['type'] == 'single') {
+          singleVideoURLList.push(info[i]);
         }
-        return singleVideoURLList;
       }
-
-      singleVideo.getXMLString = function(videoTitle) {
-        var XMLTitleLine = "<title>" + videoTitle + "</title>";
-        var XMLHeader = "<document><listTemplate><banner>" + XMLTitleLine + "</banner><list><section>";
-        var XMLString = XMLHeader;
-        for (var i=0, len=singleVideo.videoList.length; i < len; i++) {
-          var videoDict = singleVideo.videoList[i];
-          if (videoDict['type'] == 'single') {
-            var videoName = videoDict["name"];
-            var videoURL = videoDict["url"];
-            var listItemLockupString = '<listItemLockup onselect="playMedia(\'' + videoURL + '\', \'' + singleVideo.avID + '\')"><title>' + videoName + '</title></listItemLockup>';
-            XMLString = XMLString + listItemLockupString;
-          }
-        }
-        var XMLFooterString = "</section></list></listTemplate></document>";
-        XMLString = XMLString + XMLFooterString;
-        return XMLString;
-      }
+      return singleVideoURLList;
     }
-    return singleVideo;    
+
+    singleVideo.getXMLString = function(videoTitle) {
+      var XMLTitleLine = "<title>" + videoTitle + "</title>";
+      var XMLHeader = "<document><listTemplate><banner>" + XMLTitleLine + "</banner><list><section>";
+      var XMLString = XMLHeader;
+      for (var i=0, len=singleVideo.videoList.length; i < len; i++) {
+        var videoDict = singleVideo.videoList[i];
+        if (videoDict['type'] == 'single') {
+          var videoName = videoDict["name"];
+          var videoURL = videoDict["url"];
+          if (videoName == 'HD MP4') {
+            singleVideo.defaultURL = videoURL;
+          }
+          var listItemLockupString = '<listItemLockup onselect="playMedia(\'' + videoURL + '\', \'' + singleVideo.avID + '\')"><title>' + videoName + '</title></listItemLockup>';
+          XMLString = XMLString + listItemLockupString;
+        }
+      }
+      var XMLFooterString = "</section></list></listTemplate></document>";
+      XMLString = XMLString + XMLFooterString;
+      return XMLString;
+    }
+    return singleVideo;
   }
 }
 
@@ -362,11 +354,11 @@ function loadAndPushDocument(object) {
 }
 
 function updateDocumentFromClassAndSelectedElement(object, selectedElement, loadingDocument) {
+  var XMLString = object.getXMLString();
   if (object.defaultURL) {
     playMedia(object.defaultURL, object.avID);
     navigationDocument.removeDocument(loadingDocument);
   } else {
-    var XMLString = object.getXMLString();    
     var document = getDocumentObjectFromXMLString(XMLString);
     document.addEventListener("select", handleSelectEvent);
     if (selectedElement.tagName == 'menuItem') {
@@ -398,7 +390,6 @@ function handleSelectEvent(event) {
     var tagID = selectedElement.getAttribute("tagID");
     var searchText = selectedElement.getAttribute("searchText");
     var id = selectedElement.getAttribute("id");
-    var cid = selectedElement.getAttribute("cid");
 
     if (!id && !targetURL && !avNumber && !seasonID && !tagID && !searchText) {
         return;
@@ -410,8 +401,8 @@ function handleSelectEvent(event) {
     }
     if (id == 'coverPage') {
       var object = TagParade.createNew();
-    } else if (avNumber && page && cid) {
-      var object = SingleVideo.createNew(avNumber, page, cid);
+    } else if (avNumber && page) {
+      var object = SingleVideo.createNew(avNumber, page);
     } else if (avNumber) {
       var object = AVVideo.createNew(avNumber);
     } else if (seasonID) {

@@ -20,26 +20,6 @@ GIFs:
 http://i.imgur.com/vGYDTyC.gif
 
 http://i.imgur.com/NioBrKl.gif
-
-## By the way
-As a sister project of this app, I wrote an API that gives the direct video link of any bilibili video page. This API is hosted on Google Cloud Platform as a serverless function. The URL of the API is
-
-https://us-central1-cloud-176520.cloudfunctions.net/BiliAPI
-
-### Usage
-You have to provide one of the following parameter sets using GET method
-- cid (recommended for all videos)
-- av && page (optional, default to be 1) (non-bangumi only)
-- episodeID (bangumi only, recommended if you cannot find the cid)
-- season && episode (optional, default to be 1) (bangumi only, not very stable)
-
-Examples:
-https://us-central1-cloud-176520.cloudfunctions.net/BiliAPI?cid=21630951
-https://us-central1-cloud-176520.cloudfunctions.net/BiliAPI?av=830527
-
-DON'T OVERUSE IT
-
-
 # License
 This project is licensed under GPL v3.
 
