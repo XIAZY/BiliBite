@@ -55,10 +55,7 @@ var MenuBar = {
 var BangumiBundle = {
   createNew: function(seasonID) {
     var APIURL = "https://www.biliplus.com/api/bangumi?season=" + seasonID;
-    var request = new XMLHttpRequest;
-    request.open('GET', APIURL, false);
-    request.send();
-    var info = JSON.parse(request.response);
+    var info = JSON.parse(getStringFromURL(APIURL));
 
     var bangumiBundle = {};
 
@@ -73,7 +70,7 @@ var BangumiBundle = {
     bangumiBundle.description = bangumiBundle.info['evaluate'];
     bangumiBundle.count = bangumiBundle.episodes.length + ' Episodes';
     bangumiBundle.playCount = bangumiBundle.info['play_count'] + ' Hits';
-      bangumiBundle.staff = bangumiBundle.info['staff'];
+    bangumiBundle.staff = bangumiBundle.info['staff'];
 
     bangumiBundle.getAVVideoObjects = function () {
       var avVideoObjects = [];
@@ -131,10 +128,7 @@ var BangumiBundle = {
 var AVVideo = {
   createNew: function(avID) {
     var APIURL = "https://www.biliplus.com/api/view?id=" + avID;
-    var request = new XMLHttpRequest;
-    request.open('GET', APIURL, false);
-    request.send();
-    var info = JSON.parse(request.response);
+    var info = JSON.parse(getStringFromURL(APIURL));
 
     var videoCount = info['list'].length;
 
@@ -180,10 +174,12 @@ var AVVideo = {
 var SingleVideo = {
   createNew: function(avID, page) {
     var APIURL = "https://www.biliplus.com/api/geturl?update=1&av=" + avID + "&page=" + page;
-    var request = new XMLHttpRequest;
-    request.open('GET', APIURL, false);
-    request.send();
-    var info = JSON.parse(request.response)['data'];
+    var rawInfo = JSON.parse(getStringFromURL(APIURL));
+    if (rawInfo['mode'] == 'error') {
+      APIURL += '&bangumi=1';
+      rawInfo = JSON.parse(getStringFromURL(APIURL));
+    }
+    var info = rawInfo['data'];
 
     var singleVideo = {};
     singleVideo.avID = avID;
